@@ -75,7 +75,7 @@ def main():
         st.session_state.chat_history = None
     
 
-    with st.container():
+    # with st.container():
         user_question = st.chat_input("Ask your questions here:")
         if user_question:
             handle_userinput(user_question)
