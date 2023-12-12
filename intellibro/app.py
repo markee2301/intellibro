@@ -1,5 +1,6 @@
 import streamlit as st
 from PyPDF2 import PdfReader
+from dotenv import load_dotenv
 from langchain.text_splitter import CharacterTextSplitter
 from langchain.embeddings import OpenAIEmbeddings
 from langchain.vectorstores import FAISS
@@ -59,6 +60,7 @@ def handle_userinput(user_question):
 
 
 def main():
+    load_dotenv()
     st.set_page_config(page_title="IntelLibro",
                        page_icon=":books:")
     st.write(css, unsafe_allow_html=True)
@@ -74,7 +76,7 @@ def main():
 
     with st.sidebar:
         st.header("IntelLibro :book: :books:")
-        api_key = st.text_input("Enter your OpenAI API key:", type="password")
+        api_key = st.text_input("Enter your OpenAI API key.👇", type="password")
         # Access and store API key
         if api_key:
             st.session_state.api_key = api_key
