@@ -98,7 +98,7 @@ def main():
                 filename = pdf_doc.name
                 extension = os.path.splitext(filename)[1].lower()
                 if extension != ".pdf":
-                    st.error(f"Error: File '{filename}' is not a PDF file.")
+                    st.error(f"ERROR: '{filename}' is not a PDF file.")
                     return
             with st.spinner("Processing..."):
                 # get pdf text
