@@ -58,7 +58,7 @@ css = '''
 
 .st-emotion-cache-183lzff{
     font-family:sans-serif;
-    margin-left: 4rem;
+    margin-left: 3rem;
     font-size: 0.8rem;
     font-weight: 500;
     text-align: center;
