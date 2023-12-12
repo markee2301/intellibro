@@ -91,7 +91,7 @@ def main():
 
         st.subheader("📤 UPLOAD YOUR DOCUMENTS")
         pdf_docs = st.file_uploader(
-            "⚠️ Document must be in PDF format.", accept_multiple_files=True)
+            "⚠️ Document/s must be in PDF format.\n\n✔️ Please submit text-based PDFs.\n\n❌ Scanned images of text are not supported.", accept_multiple_files=True)
         if st.button("UPLOAD"):
             # Check file extensions
             for pdf_doc in pdf_docs:
@@ -113,6 +113,6 @@ def main():
                 # create conversation chain
                 st.session_state.conversation = get_conversation_chain(vectorstore)
 
-        st.text("Developed by:\n\nNavarro, Mark Anthony B.\n\nTadena, Juluis S.\n\nFelizario, Jay C.\n\nSolijon, Jessie")
+        st.text("Developed by:\n\n</>💻Navarro, Mark Anthony B.\n\n🕵🏽Tadena, Juluis S.\n\n🕵🏽Felizario, Jay C.\n\n🕵🏽Solijon, Jessie")
 if __name__ == '__main__':
     main()
