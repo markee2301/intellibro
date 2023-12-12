@@ -47,7 +47,7 @@ css = '''
     width: 100%;
 }
 
-.st-emotion-cache-10oheav h2 {
+.st-emotion-cache-16txtl3 h2 {
     font-weight: bold;
     font-size: 2.3rem;
 }
@@ -92,4 +92,3 @@ user_question = '''
   <input type="text">
 </div>
 '''
-
