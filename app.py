@@ -92,6 +92,13 @@ def main():
         pdf_docs = st.file_uploader(
             "⚠️ Document must be in PDF format.", accept_multiple_files=True)
         if st.button("UPLOAD"):
+            # Check file extensions
+            for pdf_doc in pdf_docs:
+                filename = pdf_doc.name
+                extension = os.path.splitext(filename)[1].lower()
+                if extension != ".pdf":
+                    st.error(f"Error: File '{filename}' is not a PDF file.")
+                    return
             with st.spinner("Processing..."):
                 # get pdf text
                 raw_text = get_pdf_text(pdf_docs)
