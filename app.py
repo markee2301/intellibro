@@ -76,7 +76,7 @@ def main():
 
     with st.sidebar:
         st.header("IntelLibro :book: :books:")
-        api_key = st.text_input("Enter your OpenAI API key:", type="password")
+        api_key = st.text_input("Enter your OpenAI API key.👇", type="password")
         # Access and store API key
         if api_key:
             st.session_state.api_key = api_key
