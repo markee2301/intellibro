@@ -31,23 +31,30 @@ def get_text_chunks(text):
 
 
 def get_vectorstore(text_chunks):
-    embeddings = OpenAIEmbeddings()
-    vectorstore = FAISS.from_texts(texts=text_chunks, embedding=embeddings)
-    return vectorstore
+    try:
+        embeddings = OpenAIEmbeddings()
+        vectorstore = FAISS.from_texts(texts=text_chunks, embedding=embeddings)
+        return vectorstore
+    except IndexError:
+        error_message = "An error ocurred while processing your documents. Please consider reading the Developer's note and check your files."
+        st.error(error_message)
+        return None
 
 
 def get_conversation_chain(vectorstore):
-    llm = ChatOpenAI(model="gpt-4", api_key=st.session_state.api_key)
 
-    memory = ConversationBufferMemory(
+    try:
+        llm = ChatOpenAI(model="gpt-4", api_key=st.session_state.api_key)
+        memory = ConversationBufferMemory(
         memory_key='chat_history', return_messages=True)
-    conversation_chain = ConversationalRetrievalChain.from_llm(
-        llm=llm,
-        retriever=vectorstore.as_retriever(),
-        memory=memory
-    )
-    return conversation_chain
-
+        conversation_chain = ConversationalRetrievalChain.from_llm(
+            llm=llm,
+            retriever=vectorstore.as_retriever(),
+            memory=memory
+        )
+        return conversation_chain
+    except AttributeError: #Display get_vectorstore(text_chunks) error message instead.
+        return None
 
 def handle_userinput(user_question):
     response = st.session_state.conversation({'question': user_question})
@@ -62,8 +69,7 @@ def handle_userinput(user_question):
 
 def main():
     load_dotenv()
-    st.set_page_config(page_title="IntelLibro",
-                       page_icon=":books:")
+    st.set_page_config(page_title="IntelLibro", page_icon=":books:")
     st.write(css, unsafe_allow_html=True)
 
     if "conversation" not in st.session_state:
@@ -73,7 +79,10 @@ def main():
 
     user_question = st.chat_input("Ask your questions here:")
     if user_question:
-        handle_userinput(user_question)
+        try:
+            handle_userinput(user_question)
+        except Exception as e:
+            st.error(str(e))
 
     with st.sidebar:
         st.header("IntelLibro :book: :books:")
@@ -81,11 +90,6 @@ def main():
         # Access and store API key
         if api_key:
             st.session_state.api_key = api_key
-            try:
-                llm = ChatOpenAI(model="gpt-4", api_key=api_key)
-            except Exception as e:
-                    st.error(f"Error validating API key: {e}")
-                    llm = None
         else:
             st.error("⚠️ Please provide your API key.")
 
@@ -93,6 +97,10 @@ def main():
         pdf_docs = st.file_uploader(
             "⚠️ Document/s must be in PDF format.\n\n✔️ Please submit text-based PDFs.\n\n❌ Scanned images of text are not supported.", accept_multiple_files=True)
         if st.button("UPLOAD"):
+            # Check if files are uploaded before processing
+            if pdf_docs is None or len(pdf_docs) == 0:
+                st.error("Please select file/s to upload.")
+                return
             # Check file extensions
             for pdf_doc in pdf_docs:
                 filename = pdf_doc.name
