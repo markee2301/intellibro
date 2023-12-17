@@ -57,6 +57,10 @@ def get_conversation_chain(vectorstore):
         return None
 
 def handle_userinput(user_question):
+    if st.session_state.conversation is None:
+        st.error("Please provide API key and upload files before asking questions.")
+        return
+    
     response = st.session_state.conversation({'question': user_question})
     st.session_state.chat_history = response['chat_history']
 
