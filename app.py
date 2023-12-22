@@ -125,6 +125,6 @@ def main():
                 # create conversation chain
                 st.session_state.conversation = get_conversation_chain(vectorstore)
 
-        st.text("Developed by:\n\n</>💻 Navarro, Mark Anthony B.\n\n🕵🏽 Tadena, Juluis S.\n\n🕵🏽 Felizario, Jay C.\n\n🕵🏽 Solijon, Jessie\n\n\n🌐 github.com/markee2301/intellibro")
+        st.text("Developed by:\n\n</>💻 Navarro, Mark Anthony B.\n\n🕵🏽 Tadena, Juluis S.\n\n🕵🏽 Felizario, Jay C.\n\n🕵🏽 Solijon, Jessie\n\n\n\n🤙Contact Us🤙\n\n📧 itsmark2301@gmail.com\n\nⓕ facebook.com/markee2301")
 if __name__ == '__main__':
     main()
