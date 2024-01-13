@@ -100,13 +100,12 @@ def main():
         st.subheader("📤 UPLOAD YOUR DOCUMENTS")
         pdf_docs = st.file_uploader(
             "⚠️ Document/s must be in PDF format.\n\n✔️ Please submit text-based PDFs.\n\n❌ Scanned images of text are not supported.", type=["pdf"], accept_multiple_files=True)
-        if st.button("UPLOAD"):
-            # Check if files are uploaded before processing
-            if pdf_docs is None or len(pdf_docs) == 0:
-                st.error("Please select file/s to upload.")
-                return
-            
-            if pdf_docs:
+        #Disable Upload Button if no File/s selected
+        if pdf_docs is None or len(pdf_docs) == 0:
+            st.button("UPLOAD", disabled=True)
+
+        else:
+            if st.button("UPLOAD"):
                 # Validate each uploaded document
                 all_files_valid = True
                 for pdf_doc in pdf_docs:
