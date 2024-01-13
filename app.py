@@ -98,36 +98,44 @@ def main():
             st.error("⚠️ Please provide your API key.")
 
         st.subheader("📤 UPLOAD YOUR DOCUMENTS")
-        pdf_docs = st.file_uploader(
-            "⚠️ Document/s must be in PDF format.\n\n✔️ Please submit text-based PDFs.\n\n❌ Scanned images of text are not supported.", type=["pdf"], accept_multiple_files=True)
-        #Disable Upload Button if no File/s selected
-        if pdf_docs is None or len(pdf_docs) == 0:
-            st.button("UPLOAD", disabled=True)
+        if not api_key:
+            pdf_docs = st.file_uploader(
+                "⚠️ Document/s must be in PDF format.\n\n✔️ Please submit text-based PDFs.\n\n❌ Scanned images of text are not supported.", disabled=True, type=["pdf"], accept_multiple_files=True)
+            #Disable Upload Button if no File/s selected
+            if pdf_docs is None or len(pdf_docs) == 0:
+                st.button("UPLOAD", disabled=True)
 
         else:
-            if st.button("UPLOAD"):
-                # Validate each uploaded document
-                all_files_valid = True
-                for pdf_doc in pdf_docs:
-                    if not pdf_doc.name.lower().endswith('.pdf'):
-                        st.error(f"ERROR: '{pdf_doc.name}' is not a PDF file.")
-                        all_files_valid = False
-                        break  # Stop processing further if any invalid file is found
-            
-                if all_files_valid:
-                    # Process the uploaded PDF files if all files are valid
-                    with st.spinner("Processing..."):
-                        # get pdf text
-                        raw_text = get_pdf_text(pdf_docs)
+            pdf_docs = st.file_uploader(
+                "⚠️ Document/s must be in PDF format.\n\n✔️ Please submit text-based PDFs.\n\n❌ Scanned images of text are not supported.", type=["pdf"], accept_multiple_files=True)
+            #Disable Upload Button if no File/s selected
+            if pdf_docs is None or len(pdf_docs) == 0:
+                st.button("UPLOAD", disabled=True)
 
-                        # get the text chunks
-                        text_chunks = get_text_chunks(raw_text)
+            else:
+                if st.button("UPLOAD"):
+                    # Validate each uploaded document
+                    all_files_valid = True
+                    for pdf_doc in pdf_docs:
+                        if not pdf_doc.name.lower().endswith('.pdf'):
+                            st.error(f"ERROR: '{pdf_doc.name}' is not a PDF file.")
+                            all_files_valid = False
+                            break  # Stop processing further if any invalid file is found
+                
+                    if all_files_valid:
+                        # Process the uploaded PDF files if all files are valid
+                        with st.spinner("Processing..."):
+                            # get pdf text
+                            raw_text = get_pdf_text(pdf_docs)
 
-                        # create vector store
-                        vectorstore = get_vectorstore(text_chunks)
+                            # get the text chunks
+                            text_chunks = get_text_chunks(raw_text)
 
-                        # create conversation chain
-                        st.session_state.conversation = get_conversation_chain(vectorstore)
+                            # create vector store
+                            vectorstore = get_vectorstore(text_chunks)
+
+                            # create conversation chain
+                            st.session_state.conversation = get_conversation_chain(vectorstore)
 
         st.text("Developed by:\n\n</>💻 Navarro, Mark Anthony B.\n\n🕵🏽 Tadena, Juluis S.\n\n🕵🏽 Felizario, Jay C.\n\n🕵🏽 Solijon, Jessie\n\n\n\n🤙Contact Us🤙\n\n📧 itsmark2301@gmail.com\n\nⓕ facebook.com/markee2301")
 if __name__ == '__main__':
