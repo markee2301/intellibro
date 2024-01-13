@@ -36,7 +36,7 @@ def get_vectorstore(text_chunks):
             return vectorstore
         else:
             # Handle the case where the API key is not provided
-            st.error("API key is not provided. Please enter your OpenAI API key.")
+            st.error("⚠️ Please provide your API key.")
             return None
     except IndexError:
         error_message = "An error occurred while processing your documents. Please consider reading the Developer's note and check your files."
