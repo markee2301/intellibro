@@ -1,7 +1,5 @@
-import os
 import streamlit as st
 from PyPDF2 import PdfReader
-from dotenv import load_dotenv
 from langchain.text_splitter import CharacterTextSplitter
 from langchain.embeddings import OpenAIEmbeddings
 from langchain.vectorstores import FAISS
@@ -18,7 +16,6 @@ def get_pdf_text(pdf_docs):
             text += page.extract_text()
     return text
 
-
 def get_text_chunks(text):
     text_splitter = CharacterTextSplitter(
         separator="\n",
@@ -29,17 +26,22 @@ def get_text_chunks(text):
     chunks = text_splitter.split_text(text)
     return chunks
 
-
 def get_vectorstore(text_chunks):
     try:
-        embeddings = OpenAIEmbeddings()
-        vectorstore = FAISS.from_texts(texts=text_chunks, embedding=embeddings)
-        return vectorstore
+        # Ensure the API key is available in the session state
+        if 'api_key' in st.session_state and st.session_state.api_key:
+            # Pass the API key directly to OpenAIEmbeddings
+            embeddings = OpenAIEmbeddings(openai_api_key=st.session_state.api_key)
+            vectorstore = FAISS.from_texts(texts=text_chunks, embedding=embeddings)
+            return vectorstore
+        else:
+            # Handle the case where the API key is not provided
+            st.error("API key is not provided. Please enter your OpenAI API key.")
+            return None
     except IndexError:
-        error_message = "An error ocurred while processing your documents. Please consider reading the Developer's note and check your files."
+        error_message = "An error occurred while processing your documents. Please consider reading the Developer's note and check your files."
         st.error(error_message)
         return None
-
 
 def get_conversation_chain(vectorstore):
 
@@ -70,9 +72,7 @@ def handle_userinput(user_question):
         else:
             st.write(bot_template.replace("{{MSG}}", message.content), unsafe_allow_html=True)
 
-
 def main():
-    load_dotenv()
     st.set_page_config(page_title="IntelLibro", page_icon=":books:")
     st.write(css, unsafe_allow_html=True)
 
@@ -99,15 +99,13 @@ def main():
 
         st.subheader("📤 UPLOAD YOUR DOCUMENTS")
         if not api_key:
-            pdf_docs = st.file_uploader(
-                "⚠️ Document/s must be in PDF format.\n\n✔️ Please submit text-based PDFs.\n\n❌ Scanned images of text are not supported.", disabled=True, type=["pdf"], accept_multiple_files=True)
+            pdf_docs = st.file_uploader("⚠️ Document/s must be in PDF format.\n\n✔️ Please submit text-based PDFs.\n\n❌ Scanned images of text are not supported.", disabled=True, type=["pdf"], accept_multiple_files=True)
             #Disable Upload Button if no File/s selected
             if pdf_docs is None or len(pdf_docs) == 0:
                 st.button("UPLOAD", disabled=True)
 
         else:
-            pdf_docs = st.file_uploader(
-                "⚠️ Document/s must be in PDF format.\n\n✔️ Please submit text-based PDFs.\n\n❌ Scanned images of text are not supported.", type=["pdf"], accept_multiple_files=True)
+            pdf_docs = st.file_uploader("⚠️ Document/s must be in PDF format.\n\n✔️ Please submit text-based PDFs.\n\n❌ Scanned images of text are not supported.", type=["pdf"], accept_multiple_files=True)
             #Disable Upload Button if no File/s selected
             if pdf_docs is None or len(pdf_docs) == 0:
                 st.button("UPLOAD", disabled=True)
