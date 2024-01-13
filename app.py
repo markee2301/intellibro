@@ -11,9 +11,12 @@ from styles import css, bot_template, user_template
 def get_pdf_text(pdf_docs):
     text = ""
     for pdf in pdf_docs:
-        pdf_reader = PdfReader(pdf)
-        for page in pdf_reader.pages:
-            text += page.extract_text()
+        try:
+            pdf_reader = PdfReader(pdf)
+            for page in pdf_reader.pages:
+                text += page.extract_text()
+        except Exception: #If PDF is empty. Don't print error message.
+            continue  # Skip to the next PDF document
     return text
 
 def get_text_chunks(text):
@@ -39,7 +42,13 @@ def get_vectorstore(text_chunks):
             st.error("⚠️ Please provide your API key.")
             return None
     except IndexError:
-        error_message = "An error occurred while processing your documents. Please consider reading the Developer's note and check your files."
+        #Error message if PDF contain image.
+        error_message = "An error occurred while processing your documents. Please consider reading and following the Developers' note above and try again."
+        st.error(error_message)
+        return None
+    except Exception:
+        # Error message if API Key is incorrect.
+        error_message = "An error occurred. Please check your API key and try again."
         st.error(error_message)
         return None
 
@@ -55,7 +64,7 @@ def get_conversation_chain(vectorstore):
             memory=memory
         )
         return conversation_chain
-    except AttributeError: #Display get_vectorstore(text_chunks) error message instead.
+    except AttributeError: #If there is an error in the retriever. Don't print error message.
         return None
 
 def handle_userinput(user_question):
@@ -83,10 +92,7 @@ def main():
 
     user_question = st.chat_input("Ask your questions here:")
     if user_question:
-        try:
-            handle_userinput(user_question)
-        except Exception as e:
-            st.error(str(e))
+        handle_userinput(user_question)
 
     with st.sidebar:
         st.header("IntelLibro :book: :books:")
@@ -96,6 +102,7 @@ def main():
             st.session_state.api_key = api_key
         else:
             st.error("⚠️ Please provide your API key.")
+            st.markdown("No API Key? Get yours [here!](https://openai.com/blog/api-no-waitlist/)", unsafe_allow_html=True)
 
         st.subheader("📤 UPLOAD YOUR DOCUMENTS")
         if not api_key:
