@@ -22,8 +22,8 @@ def get_pdf_text(pdf_docs):
 def get_text_chunks(text):
     text_splitter = CharacterTextSplitter(
         separator="\n",
-        chunk_size=1000,
-        chunk_overlap=200,
+        chunk_size=2000,
+        chunk_overlap=1000,
         length_function=len
     )
     chunks = text_splitter.split_text(text)
@@ -44,7 +44,7 @@ def get_vectorstore(text_chunks):
 def get_conversation_chain(vectorstore):
 
     try:
-        llm = ChatOpenAI(model="gpt-4", api_key=st.session_state.api_key)
+        llm = ChatOpenAI(temperature=0, model="gpt-4", api_key=st.session_state.api_key)
         memory = ConversationBufferMemory(
         memory_key='chat_history', return_messages=True)
         conversation_chain = ConversationalRetrievalChain.from_llm(
@@ -99,31 +99,36 @@ def main():
 
         st.subheader("📤 UPLOAD YOUR DOCUMENTS")
         pdf_docs = st.file_uploader(
-            "⚠️ Document/s must be in PDF format.\n\n✔️ Please submit text-based PDFs.\n\n❌ Scanned images of text are not supported.", accept_multiple_files=True)
+            "⚠️ Document/s must be in PDF format.\n\n✔️ Please submit text-based PDFs.\n\n❌ Scanned images of text are not supported.", type=["pdf"], accept_multiple_files=True)
         if st.button("UPLOAD"):
             # Check if files are uploaded before processing
             if pdf_docs is None or len(pdf_docs) == 0:
                 st.error("Please select file/s to upload.")
                 return
-            # Check file extensions
-            for pdf_doc in pdf_docs:
-                filename = pdf_doc.name
-                extension = os.path.splitext(filename)[1].lower()
-                if extension != ".pdf":
-                    st.error(f"ERROR: '{filename}' is not a PDF file.")
-                    return
-            with st.spinner("Processing..."):
-                # get pdf text
-                raw_text = get_pdf_text(pdf_docs)
+            
+            if pdf_docs:
+                # Validate each uploaded document
+                all_files_valid = True
+                for pdf_doc in pdf_docs:
+                    if not pdf_doc.name.lower().endswith('.pdf'):
+                        st.error(f"ERROR: '{pdf_doc.name}' is not a PDF file.")
+                        all_files_valid = False
+                        break  # Stop processing further if any invalid file is found
+            
+                if all_files_valid:
+                    # Process the uploaded PDF files if all files are valid
+                    with st.spinner("Processing..."):
+                        # get pdf text
+                        raw_text = get_pdf_text(pdf_docs)
 
-                # get the text chunks
-                text_chunks = get_text_chunks(raw_text)
+                        # get the text chunks
+                        text_chunks = get_text_chunks(raw_text)
 
-                # create vector store
-                vectorstore = get_vectorstore(text_chunks)
+                        # create vector store
+                        vectorstore = get_vectorstore(text_chunks)
 
-                # create conversation chain
-                st.session_state.conversation = get_conversation_chain(vectorstore)
+                        # create conversation chain
+                        st.session_state.conversation = get_conversation_chain(vectorstore)
 
         st.text("Developed by:\n\n</>💻 Navarro, Mark Anthony B.\n\n🕵🏽 Tadena, Juluis S.\n\n🕵🏽 Felizario, Jay C.\n\n🕵🏽 Solijon, Jessie\n\n\n\n🤙Contact Us🤙\n\n📧 itsmark2301@gmail.com\n\nⓕ facebook.com/markee2301")
 if __name__ == '__main__':
