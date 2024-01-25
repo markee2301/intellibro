@@ -103,7 +103,7 @@ def main():
         else:
             st.error("⚠️ Please provide your API key.")
             st.markdown("No API Key? Get yours [here!](https://platform.openai.com/api-keys)", unsafe_allow_html=True)
-        st.markdown("To know more about IntelLibro. Visit our website [here!](https://platform.openai.com/api-keys)", unsafe_allow_html=True)
+        st.markdown("To know more about IntelLibro. Visit our website [here!](https://intellibro.netlify.app/)", unsafe_allow_html=True)
 
         st.subheader("📤 UPLOAD YOUR DOCUMENTS")
         if not api_key:
