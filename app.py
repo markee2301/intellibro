@@ -53,18 +53,24 @@ def get_vectorstore(text_chunks):
         return None
 
 def get_conversation_chain(vectorstore):
-
     try:
-        llm = ChatOpenAI(temperature=0.2, model="gpt-4", api_key=st.session_state.api_key)
-        memory = ConversationBufferMemory(
-        memory_key='chat_history', return_messages=True)
-        conversation_chain = ConversationalRetrievalChain.from_llm(
-            llm=llm,
-            retriever=vectorstore.as_retriever(),
-            memory=memory
-        )
-        return conversation_chain
-    except AttributeError: #If there is an error in the retriever. Don't print error message.
+        # Ensure the API key is available in the session state
+        if 'api_key' in st.session_state and st.session_state.api_key:
+            # Pass the API key directly to ChatOpenAI
+            llm = ChatOpenAI(temperature=0.2, model="gpt-4", openai_api_key=st.session_state.api_key)
+            memory = ConversationBufferMemory(
+                memory_key='chat_history', return_messages=True)
+            conversation_chain = ConversationalRetrievalChain.from_llm(
+                llm=llm,
+                retriever=vectorstore.as_retriever(),
+                memory=memory
+            )
+            return conversation_chain
+        else:
+            # Handle the case where the API key is not provided
+            st.error("⚠️ Please provide your API key.")
+            return None
+    except AttributeError:  # If there is an error in the retriever, don't print an error message.
         return None
 
 def handle_userinput(user_question):
