@@ -23,7 +23,7 @@ def get_text_chunks(text):
     text_splitter = CharacterTextSplitter(
         separator="\n",
         chunk_size=2000,
-        chunk_overlap=200,
+        chunk_overlap=500,
         length_function=len
     )
     chunks = text_splitter.split_text(text)
