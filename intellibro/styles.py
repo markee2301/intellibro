@@ -67,6 +67,7 @@ css = '''
     text-align: center;
     font-style: italic;
     color: #5A5A5A;
+    line-height: 1;
 }
 
 </style>
