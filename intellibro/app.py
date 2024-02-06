@@ -1,7 +1,5 @@
-import os
 import streamlit as st
 from PyPDF2 import PdfReader
-from dotenv import load_dotenv
 from langchain.text_splitter import CharacterTextSplitter
 from langchain.embeddings import OpenAIEmbeddings
 from langchain.vectorstores import FAISS
@@ -13,11 +11,13 @@ from styles import css, bot_template, user_template
 def get_pdf_text(pdf_docs):
     text = ""
     for pdf in pdf_docs:
-        pdf_reader = PdfReader(pdf)
-        for page in pdf_reader.pages:
-            text += page.extract_text()
+        try:
+            pdf_reader = PdfReader(pdf)
+            for page in pdf_reader.pages:
+                text += page.extract_text()
+        except Exception: #If PDF is empty. Don't print error message.
+            continue  # Skip to the next PDF document
     return text
-
 
 def get_text_chunks(text):
     text_splitter = CharacterTextSplitter(
@@ -29,31 +29,48 @@ def get_text_chunks(text):
     chunks = text_splitter.split_text(text)
     return chunks
 
-
 def get_vectorstore(text_chunks):
     try:
-        embeddings = OpenAIEmbeddings()
-        vectorstore = FAISS.from_texts(texts=text_chunks, embedding=embeddings)
-        return vectorstore
+        # Ensure the API key is available in the session state
+        if 'api_key' in st.session_state and st.session_state.api_key:
+            # Pass the API key directly to OpenAIEmbeddings
+            embeddings = OpenAIEmbeddings(openai_api_key=st.session_state.api_key)
+            vectorstore = FAISS.from_texts(texts=text_chunks, embedding=embeddings)
+            return vectorstore
+        else:
+            # Handle the case where the API key is not provided
+            st.error("⚠️ Please provide your API key.")
+            return None
     except IndexError:
-        error_message = "An error ocurred while processing your documents. Please consider reading the Developer's note and check your files."
+        #Error message if PDF contain image.
+        error_message = "An error occurred while processing your documents. Please consider reading and following the Developers' note above and try again."
+        st.error(error_message)
+        return None
+    except Exception:
+        # Error message if API Key is incorrect.
+        error_message = "An error occurred. Please check your API key and try again."
         st.error(error_message)
         return None
 
-
 def get_conversation_chain(vectorstore):
-
     try:
-        llm = ChatOpenAI(model="gpt-4", api_key=st.session_state.api_key)
-        memory = ConversationBufferMemory(
-        memory_key='chat_history', return_messages=True)
-        conversation_chain = ConversationalRetrievalChain.from_llm(
-            llm=llm,
-            retriever=vectorstore.as_retriever(),
-            memory=memory
-        )
-        return conversation_chain
-    except AttributeError: #Display get_vectorstore(text_chunks) error message instead.
+        # Ensure the API key is available in the session state
+        if 'api_key' in st.session_state and st.session_state.api_key:
+            # Pass the API key directly to ChatOpenAI
+            llm = ChatOpenAI(temperature=0.2, model="gpt-4", openai_api_key=st.session_state.api_key)
+            memory = ConversationBufferMemory(
+                memory_key='chat_history', return_messages=True)
+            conversation_chain = ConversationalRetrievalChain.from_llm(
+                llm=llm,
+                retriever=vectorstore.as_retriever(),
+                memory=memory
+            )
+            return conversation_chain
+        else:
+            # Handle the case where the API key is not provided
+            st.error("⚠️ Please provide your API key.")
+            return None
+    except AttributeError:  # If there is an error in the retriever, don't print an error message.
         return None
 
 def handle_userinput(user_question):
@@ -70,10 +87,8 @@ def handle_userinput(user_question):
         else:
             st.write(bot_template.replace("{{MSG}}", message.content), unsafe_allow_html=True)
 
-
 def main():
-    load_dotenv()
-    st.set_page_config(page_title="IntelLibro", page_icon=":books:")
+    st.set_page_config(page_title="IntelLibro", page_icon="icon.png")
     st.write(css, unsafe_allow_html=True)
 
     if "conversation" not in st.session_state:
@@ -83,10 +98,7 @@ def main():
 
     user_question = st.chat_input("Ask your questions here:")
     if user_question:
-        try:
-            handle_userinput(user_question)
-        except Exception as e:
-            st.error(str(e))
+        handle_userinput(user_question)
 
     with st.sidebar:
         st.header("IntelLibro :book: :books:")
@@ -96,35 +108,47 @@ def main():
             st.session_state.api_key = api_key
         else:
             st.error("⚠️ Please provide your API key.")
+            st.markdown("No API Key? Get yours [here!](https://platform.openai.com/api-keys)", unsafe_allow_html=True)
+        st.markdown("To know more about IntelLibro. Visit our website [here!](https://intellibro.netlify.app/)", unsafe_allow_html=True)
 
         st.subheader("📤 UPLOAD YOUR DOCUMENTS")
-        pdf_docs = st.file_uploader(
-            "⚠️ Document/s must be in PDF format.\n\n✔️ Please submit text-based PDFs.\n\n❌ Scanned images of text are not supported.", accept_multiple_files=True)
-        if st.button("UPLOAD"):
-            # Check if files are uploaded before processing
+        if not api_key:
+            pdf_docs = st.file_uploader("⚠️ Document/s must be in PDF format.\n\n✔️ Please submit text-based PDFs.\n\n❌ Scanned images of text are not supported.", disabled=True, type=["pdf"], accept_multiple_files=True)
+            #Disable Upload Button if no File/s selected
             if pdf_docs is None or len(pdf_docs) == 0:
-                st.error("Please select file/s to upload.")
-                return
-            # Check file extensions
-            for pdf_doc in pdf_docs:
-                filename = pdf_doc.name
-                extension = os.path.splitext(filename)[1].lower()
-                if extension != ".pdf":
-                    st.error(f"ERROR: '{filename}' is not a PDF file.")
-                    return
-            with st.spinner("Processing..."):
-                # get pdf text
-                raw_text = get_pdf_text(pdf_docs)
+                st.button("UPLOAD", disabled=True)
 
-                # get the text chunks
-                text_chunks = get_text_chunks(raw_text)
+        else:
+            pdf_docs = st.file_uploader("⚠️ Document/s must be in PDF format.\n\n✔️ Please submit text-based PDFs.\n\n❌ Scanned images of text are not supported.", type=["pdf"], accept_multiple_files=True)
+            #Disable Upload Button if no File/s selected
+            if pdf_docs is None or len(pdf_docs) == 0:
+                st.button("UPLOAD", disabled=True)
 
-                # create vector store
-                vectorstore = get_vectorstore(text_chunks)
+            else:
+                if st.button("UPLOAD"):
+                    # Validate each uploaded document
+                    all_files_valid = True
+                    for pdf_doc in pdf_docs:
+                        if not pdf_doc.name.lower().endswith('.pdf'):
+                            st.error(f"ERROR: '{pdf_doc.name}' is not a PDF file.")
+                            all_files_valid = False
+                            break  # Stop processing further if any invalid file is found
+                
+                    if all_files_valid:
+                        # Process the uploaded PDF files if all files are valid
+                        with st.spinner("Processing..."):
+                            # get pdf text
+                            raw_text = get_pdf_text(pdf_docs)
 
-                # create conversation chain
-                st.session_state.conversation = get_conversation_chain(vectorstore)
+                            # get the text chunks
+                            text_chunks = get_text_chunks(raw_text)
 
-        st.text("Developed by:\n\n</>💻 Navarro, Mark Anthony B.\n\n🕵🏽 Tadena, Juluis S.\n\n🕵🏽 Felizario, Jay C.\n\n🕵🏽 Solijon, Jessie\n\n\n🌐 github.com/markee2301/intellibro")
+                            # create vector store
+                            vectorstore = get_vectorstore(text_chunks)
+
+                            # create conversation chain
+                            st.session_state.conversation = get_conversation_chain(vectorstore)
+
+        st.text("Developed by:\n\n</>💻 Navarro, Mark Anthony B.🤙Contact Developer🤙\n\n📧 itsmark2301@gmail.com\n\nⓕ facebook.com/markee2301")
 if __name__ == '__main__':
     main()
