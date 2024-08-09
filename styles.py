@@ -76,7 +76,7 @@ css = '''
 bot_template = '''
 <div class="chat-message bot">
     <div class="avatar">
-        <img src="https://i.ibb.co/KN1TVrX/bot.jpg">
+        <img src="ai.jpg">
     </div>
     <div class="message">{{MSG}}</div>
 </div>
@@ -86,7 +86,7 @@ user_template = '''
 <div class="chat-message user">
     <div class="message">{{MSG}}</div>
     <div class="avatar">
-        <img src="https://i.ibb.co/gjPHppH/human.jpg">
+        <img src="user.jpg">
     </div>
 </div>
 '''
