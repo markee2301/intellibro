@@ -57,7 +57,7 @@ def get_conversation_chain(vectorstore):
         # Ensure the API key is available in the session state
         if 'api_key' in st.session_state and st.session_state.api_key:
             # Pass the API key directly to ChatOpenAI
-            llm = ChatOpenAI(temperature=0.2, model="gpt-4", openai_api_key=st.session_state.api_key)
+            llm = ChatOpenAI(temperature=0.2, model="gpt-4o", openai_api_key=st.session_state.api_key)
             memory = ConversationBufferMemory(
                 memory_key='chat_history', return_messages=True)
             conversation_chain = ConversationalRetrievalChain.from_llm(
